@@ -1,0 +1,73 @@
+plugins {
+    id 'java' // Core Java
+    id 'application' // For running the server
+    id 'jacoco' // Code coverage
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21) // Use Java 21
+    }
+}
+
+group = 'org.shanthan'
+version = '1.0.0'
+application {
+    mainClass = 'org.shanthan.DoubleEagleWebServer' // Replace with your main class
+}
+
+repositories {
+    mavenCentral() // Use Maven Central for dependencies
+}
+
+dependencies {
+    // Core dependencies
+    implementation 'org.slf4j:slf4j-api:2.0.9' // Logging API
+    runtimeOnly 'org.slf4j:slf4j-simple:2.0.9' // Simple SLF4J implementation for console logging
+
+    // Testing dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0' // JUnit 5 for unit testing
+    testImplementation 'org.mockito:mockito-core:5.5.0' // Mockito for mocking in tests
+    testImplementation 'org.assertj:assertj-core:3.24.2' // Fluent assertions
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.11.0' // For IDE compatibility
+
+    // Integration testing dependencies (if needed)
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.0' // Testcontainers for integration tests
+    testImplementation 'org.testcontainers:mysql:1.19.0' // Example: MySQL container for integration testing
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform() // Enable JUnit 5
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.10" // Code coverage tool version
+    reportsDirectory = file("$buildDir/customJacocoReportDir")
+}
+
+tasks.jacocoTestReport {
+    dependsOn test // Ensure tests are run before generating the report
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+applicationDefaultJvmArgs = [
+        '-Dserver.port=8080', // Set default server port
+        '-Djava.security.egd=file:/dev/./urandom' // Improve startup time
+]
+
+// Add task for integration testing if needed
+task integrationTest(type: Test) {
+    group = 'verification'
+    description = 'Runs integration tests.'
+    useJUnitPlatform()
+    shouldRunAfter test
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
